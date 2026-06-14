@@ -58,7 +58,8 @@ export default function NewsDetailPage() {
   );
 
   const shareText = encodeURIComponent(news.title);
-  const shareUrl = encodeURIComponent(pageUrl);
+  const originUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const shareUrl = encodeURIComponent(`${originUrl}/share/${news.slug}`);
 
   return (
     <Layout>
