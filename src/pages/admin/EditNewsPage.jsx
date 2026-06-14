@@ -14,7 +14,12 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Bold, Italic, List, ListOrdered, Heading2, Heading3, Link as LinkIcon, Image as ImageIcon, Quote, Undo, Redo } from 'lucide-react';
+import { Color } from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { FontSize } from '../../components/admin/editor/FontSize';
+import { FontFamily } from '@tiptap/extension-font-family';
+import { Video as VideoExtension } from '../../components/admin/editor/Video';
+import { Bold, Italic, List, ListOrdered, Heading2, Heading3, Link as LinkIcon, Image as ImageIcon, Video as VideoIcon, Quote, Undo, Redo, Type } from 'lucide-react';
 
 function EditorToolbar({ editor }) {
   if (!editor) return null;
@@ -30,7 +35,44 @@ function EditorToolbar({ editor }) {
   );
 
   return (
-    <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-t-lg">
+    <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-t-lg">
+      <select
+        onChange={(e) => {
+          if (e.target.value) editor.chain().focus().setFontFamily(e.target.value).run();
+          else editor.chain().focus().unsetFontFamily().run();
+        }}
+        value={editor.getAttributes('textStyle').fontFamily || ''}
+        className="px-1 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none max-w-[100px]"
+      >
+        <option value="">Font</option>
+        <option value="Inter">Inter</option>
+        <option value="Arial">Arial</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Courier New">Courier</option>
+      </select>
+
+      <select
+        onChange={(e) => {
+          if (e.target.value) editor.chain().focus().setFontSize(e.target.value).run();
+          else editor.chain().focus().unsetFontSize().run();
+        }}
+        value={editor.getAttributes('fontSize').fontSize || ''}
+        className="px-1 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none"
+      >
+        <option value="">Size</option>
+        <option value="12px">12px</option>
+        <option value="14px">14px</option>
+        <option value="16px">16px</option>
+        <option value="18px">18px</option>
+        <option value="20px">20px</option>
+        <option value="24px">24px</option>
+        <option value="30px">30px</option>
+        <option value="36px">36px</option>
+      </select>
+
+      <div className="w-px h-5 bg-gray-300 dark:bg-gray-500 mx-1" />
+
       {btn(() => editor.chain().focus().toggleBold().run(), 'Bold', Bold, editor.isActive('bold'))}
       {btn(() => editor.chain().focus().toggleItalic().run(), 'Italic', Italic, editor.isActive('italic'))}
       {btn(() => editor.chain().focus().toggleHeading({ level: 2 }).run(), 'H2', Heading2, editor.isActive('heading', { level: 2 }))}
@@ -38,6 +80,21 @@ function EditorToolbar({ editor }) {
       {btn(() => editor.chain().focus().toggleBulletList().run(), 'Bullet List', List, editor.isActive('bulletList'))}
       {btn(() => editor.chain().focus().toggleOrderedList().run(), 'Numbered List', ListOrdered, editor.isActive('orderedList'))}
       {btn(() => editor.chain().focus().toggleBlockquote().run(), 'Quote', Quote, editor.isActive('blockquote'))}
+      
+      <div className="w-px h-5 bg-gray-300 dark:bg-gray-500 mx-1" />
+      
+      <div className="flex items-center gap-1 group relative" title="Text Color">
+        <Type className="w-4 h-4 text-gray-600 dark:text-gray-300 ml-1" />
+        <input
+          type="color"
+          onInput={(e) => editor.chain().focus().setColor(e.target.value).run()}
+          value={editor.getAttributes('textStyle').color || '#000000'}
+          className="w-6 h-6 p-0 border-0 rounded cursor-pointer bg-transparent"
+        />
+      </div>
+
+      <div className="w-px h-5 bg-gray-300 dark:bg-gray-500 mx-1" />
+
       <button
         type="button"
         title="Add Link"
@@ -49,18 +106,60 @@ function EditorToolbar({ editor }) {
       >
         <LinkIcon className="w-4 h-4" />
       </button>
-      <button
-        type="button"
-        title="Insert Image"
-        onClick={() => {
-          const url = window.prompt('Enter image URL');
-          if (url) editor.chain().focus().setImage({ src: url }).run();
-        }}
-        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-      >
+
+      <label className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer" title="Upload Image">
         <ImageIcon className="w-4 h-4" />
-      </button>
-      <div className="w-px bg-gray-300 dark:bg-gray-500 mx-1" />
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop();
+            const path = `news/${Date.now()}.${ext}`;
+            const toastId = toast.loading('Uploading image...');
+            try {
+              const { error } = await supabase.storage.from('news-images').upload(path, file);
+              if (error) throw error;
+              const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
+              editor.chain().focus().setImage({ src: publicUrl }).run();
+              toast.success('Image uploaded', { id: toastId });
+            } catch (err) {
+              toast.error('Upload failed', { id: toastId });
+            }
+            e.target.value = '';
+          }}
+        />
+      </label>
+
+      <label className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer" title="Upload Video">
+        <VideoIcon className="w-4 h-4" />
+        <input
+          type="file"
+          accept="video/*"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop();
+            const path = `news/videos/${Date.now()}.${ext}`;
+            const toastId = toast.loading('Uploading video...');
+            try {
+              const { error } = await supabase.storage.from('news-images').upload(path, file);
+              if (error) throw error;
+              const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
+              editor.chain().focus().setVideo({ src: publicUrl }).run();
+              toast.success('Video uploaded', { id: toastId });
+            } catch (err) {
+              toast.error('Upload failed', { id: toastId });
+            }
+            e.target.value = '';
+          }}
+        />
+      </label>
+
+      <div className="w-px h-5 bg-gray-300 dark:bg-gray-500 mx-1" />
       {btn(() => editor.chain().focus().undo().run(), 'Undo', Undo)}
       {btn(() => editor.chain().focus().redo().run(), 'Redo', Redo)}
     </div>
@@ -68,9 +167,9 @@ function EditorToolbar({ editor }) {
 }
 
 const EMPTY_FORM = {
-  title: '', slug: '', short_description: '', featured_image: '',
-  category_id: '', author_id: '', status: 'draft',
-  is_featured: false, is_breaking: false,
+  title: '', slug: '', featured_image: '',
+  category_id: '', author_id: '', status: 'published',
+  is_featured: true, is_breaking: true,
   meta_title: '', meta_description: '', tags: '',
 };
 
@@ -90,11 +189,15 @@ export default function EditNewsPage() {
 
   const editor = useEditor({
     extensions: [
-      // Disable link in StarterKit to avoid duplicate (some versions include it)
       StarterKit.configure({ link: false }),
       Image,
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: 'Write your article content here…' }),
+      TextStyle,
+      Color,
+      FontFamily,
+      FontSize,
+      VideoExtension,
     ],
   });
 
@@ -114,7 +217,6 @@ export default function EditNewsPage() {
       setForm({
         title: existing.title || '',
         slug: existing.slug || '',
-        short_description: existing.short_description || '',
         featured_image: existing.featured_image || '',
         category_id: existing.category_id || '',
         author_id: existing.author_id || '',
@@ -130,6 +232,13 @@ export default function EditNewsPage() {
       }
     }
   }, [existing, editor]);
+
+  // Set default author when creating a new article
+  useEffect(() => {
+    if (!isEdit && authors && authors.length > 0) {
+      setForm(f => f.author_id ? f : { ...f, author_id: authors[0].id });
+    }
+  }, [authors, isEdit]);
 
   function handleTitleChange(e) {
     const title = e.target.value;
@@ -184,7 +293,6 @@ export default function EditNewsPage() {
       const payload = {
         title: form.title.trim(),
         slug: resolvedSlug,
-        short_description: form.short_description.trim(),
         featured_image: form.featured_image.trim(),
         category_id: form.category_id || null,
         author_id: form.author_id || null,
@@ -255,10 +363,7 @@ export default function EditNewsPage() {
                   <label className={labelCls}>Slug</label>
                   <input type="text" value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} className={inputCls} placeholder="url-friendly-slug" />
                 </div>
-                <div>
-                  <label className={labelCls}>Short Description</label>
-                  <textarea rows={3} value={form.short_description} onChange={e => setForm(f => ({ ...f, short_description: e.target.value }))} className={`${inputCls} resize-none`} placeholder="Brief summary (shown in cards and search)" maxLength={300} />
-                </div>
+
 
                 {/* Rich Text Editor */}
                 <div>

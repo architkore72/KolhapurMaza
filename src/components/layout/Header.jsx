@@ -25,6 +25,7 @@ export default function Header() {
   const { dark, toggle } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: categories = [] } = useCategories();
 
   const today = format(new Date(), 'EEEE, MMMM d, yyyy');
 
@@ -41,7 +42,7 @@ export default function Header() {
             <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="hover:text-sky-400 transition-colors">
               <FaTwitter size={13} />
             </a>
-            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hover:text-red-500 transition-colors">
+            <a href="https://www.youtube.com/@KOPMAZA" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hover:text-red-500 transition-colors">
               <FaYoutube size={13} />
             </a>
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-pink-400 transition-colors">
@@ -103,33 +104,61 @@ export default function Header() {
       <nav className="bg-red-700 sticky top-0 z-40 shadow-md">
         <div className="container mx-auto px-4">
           {/* Desktop nav */}
-          <ul className="hidden md:flex items-center gap-0">
-            {NAV_LINKS.map(link => (
-              <li key={link.path}>
+          <ul className="hidden md:flex items-center gap-0 overflow-x-auto no-scrollbar whitespace-nowrap">
+            <li>
+              <Link to="/" className="block px-4 py-3 text-white text-sm font-semibold hover:bg-red-800 transition-colors">
+                Home
+              </Link>
+            </li>
+            {categories.map(cat => (
+              <li key={cat.id}>
                 <Link
-                  to={link.path}
+                  to={`/category/${cat.slug}`}
                   className="block px-4 py-3 text-white text-sm font-semibold hover:bg-red-800 transition-colors"
                 >
-                  {link.label}
+                  {cat.name}
                 </Link>
               </li>
             ))}
+            <li>
+              <Link to="/contact" className="block px-4 py-3 text-white text-sm font-semibold hover:bg-red-800 transition-colors">
+                Contact
+              </Link>
+            </li>
           </ul>
 
           {/* Mobile nav */}
           {mobileOpen && (
             <ul className="md:hidden py-2 border-t border-red-600">
-              {NAV_LINKS.map(link => (
-                <li key={link.path}>
+              <li>
+                <Link
+                  to="/"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-4 py-2.5 text-white text-sm font-medium hover:bg-red-800 transition-colors"
+                >
+                  Home
+                </Link>
+              </li>
+              {categories.map(cat => (
+                <li key={cat.id}>
                   <Link
-                    to={link.path}
+                    to={`/category/${cat.slug}`}
                     onClick={() => setMobileOpen(false)}
                     className="block px-4 py-2.5 text-white text-sm font-medium hover:bg-red-800 transition-colors"
                   >
-                    {link.label}
+                    {cat.name}
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  to="/contact"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-4 py-2.5 text-white text-sm font-medium hover:bg-red-800 transition-colors"
+                >
+                  Contact
+                </Link>
+              </li>
             </ul>
           )}
         </div>

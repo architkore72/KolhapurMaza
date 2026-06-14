@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { FaFacebook, FaTwitter, FaYoutube, FaInstagram } from 'react-icons/fa';
 import { useCategories } from '../../hooks/useCategories';
+import logoImg from '../../assets/kopmaza.png';
 
 export default function Footer() {
   const { data: categories = [] } = useCategories();
@@ -12,14 +13,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* About */}
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-red-700 rounded flex items-center justify-center">
-                <span className="text-white font-black text-lg">K</span>
-              </div>
-              <span className="text-white font-black text-lg">KopMaza News</span>
-            </div>
+            <Link to="/" className="inline-block mb-3">
+              <img src={logoImg} alt="KopMaza Logo" className="w-32 h-32 object-contain" />
+            </Link>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Your trusted source for the latest news across politics, business, technology, sports, and more.
+              'कोल्हापूर माझा 'आहे शैक्षणिक,राजकीय, सामाजिक आर्थिक,सांस्कृतिक, खेळ,व्यवसाय गुन्हा, मनोरंजन,शहर,जिल्हा,राज्य व देश पातळीवरील वेध घेणारे न्यूज चॅनल व पोर्टल आहे
             </p>
             <div className="flex gap-3 mt-4">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-gray-400 hover:text-blue-400 transition-colors"><FaFacebook size={18} /></a>
@@ -35,8 +33,11 @@ export default function Footer() {
             <ul className="space-y-1.5">
               {categories.slice(0, 8).map(cat => (
                 <li key={cat.id}>
-                  <Link to={`/category/${cat.slug}`} className="text-sm text-gray-400 hover:text-red-400 transition-colors">
-                    › {cat.name}
+                  <Link to={`/category/${cat.slug}`} className="group flex items-center justify-between text-sm text-gray-400 hover:text-red-400 transition-colors">
+                    <span>› {cat.name}</span>
+                    <span className="text-xs bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded group-hover:bg-red-900 group-hover:text-red-300 transition-colors">
+                      {cat.news?.[0]?.count || 0}
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -67,7 +68,7 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold mb-3 text-sm uppercase tracking-wider border-b border-gray-700 pb-2">Contact</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li>📧 news@kopmaza.in</li>
+              <li>संपादक : राजेंद्र तुकाराम कोरे</li>
               <li>📞 +91 9595329596</li>
               <li>📍 Kolhapur, Maharashtra, India</li>
             </ul>

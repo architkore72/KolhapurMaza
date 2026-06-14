@@ -86,7 +86,10 @@ export function NewsCard({ news }) {
             {news.title}
           </h3>
           {news.short_description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+            <p 
+              className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3"
+              style={news.short_description_color ? { color: news.short_description_color } : undefined}
+            >
               {news.short_description}
             </p>
           )}

@@ -120,7 +120,10 @@ export default function NewsDetailPage() {
 
           {/* Short description */}
           {news.short_description && (
-            <p className="text-lg text-gray-600 dark:text-gray-300 font-medium mb-5 italic">
+            <p 
+              className="text-lg text-gray-600 dark:text-gray-300 font-medium mb-5 italic"
+              style={news.short_description_color ? { color: news.short_description_color } : undefined}
+            >
               {news.short_description}
             </p>
           )}

@@ -7,7 +7,7 @@ import { Plus, Pencil, Trash2, X, Check, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const POSITIONS = ['header', 'sidebar', 'footer'];
-const EMPTY = { title: '', image: '', url: '', position: 'sidebar', status: 'active' };
+const EMPTY = { title: '', image: '', url: '', position: 'header', status: 'active' };
 
 export default function ManageAdsPage() {
   const { data: ads = [], isLoading } = useAllAds();

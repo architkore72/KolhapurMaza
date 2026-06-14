@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS public.news (
   title TEXT NOT NULL,
   slug TEXT NOT NULL UNIQUE,
   short_description TEXT,
+  short_description_color VARCHAR(20),
   content TEXT,
   featured_image TEXT,
   category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,

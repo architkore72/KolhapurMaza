@@ -7,7 +7,7 @@ export function useCategories() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select('*, news:news(count)')
         .order('name');
       if (error) throw error;
       return data;
