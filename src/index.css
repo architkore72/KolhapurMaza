@@ -1,0 +1,54 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2 rounded transition-colors duration-200 cursor-pointer;
+  }
+  .btn-outline {
+    @apply border border-red-700 text-red-700 hover:bg-red-700 hover:text-white font-semibold px-4 py-2 rounded transition-colors duration-200 cursor-pointer;
+  }
+  .news-card {
+    @apply bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300;
+  }
+  .section-title {
+    @apply text-xl font-bold text-gray-900 dark:text-white border-l-4 border-red-700 pl-3 mb-5;
+  }
+  .category-badge {
+    @apply inline-block bg-red-700 text-white text-xs font-semibold px-2 py-0.5 rounded uppercase tracking-wider;
+  }
+  .skeleton {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
+  }
+  .admin-sidebar-link {
+    @apply flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-gray-700 hover:text-red-700 rounded-lg transition-colors duration-200 text-sm font-medium;
+  }
+  .admin-sidebar-link.active {
+    @apply bg-red-700 text-white hover:bg-red-800 hover:text-white;
+  }
+}
+
+@keyframes ticker {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.ticker-animate {
+  animation: ticker 35s linear infinite;
+  white-space: nowrap;
+  display: inline-block;
+}
+.ticker-animate:hover { animation-play-state: paused; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb { background: #b91c1c; border-radius: 3px; }
+
