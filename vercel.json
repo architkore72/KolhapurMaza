@@ -1,17 +1,7 @@
 {
   "rewrites": [
     { "source": "/share/:slug", "destination": "/api/share?slug=$1" },
-    {
-      "source": "/news/:slug",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i).*(whatsapp|facebookexternalhit|facebot|twitterbot|linkedinbot|telegrambot|discordbot|slackbot|googlebot|bingbot|applebot|pinterest|redditbot|vkshare|iframely|crawler|spider|bot).*"
-        }
-      ],
-      "destination": "/api/news?slug=$1"
-    },
+    { "source": "/news/:slug", "destination": "/api/news?slug=$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

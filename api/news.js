@@ -1,8 +1,38 @@
+const BOT_AGENTS = [
+  'whatsapp', 'facebookexternalhit', 'facebot', 'twitterbot',
+  'linkedinbot', 'telegrambot', 'discordbot', 'slackbot',
+  'googlebot', 'bingbot', 'applebot', 'pinterest',
+  'redditbot', 'vkshare', 'iframely', 'crawler', 'spider',
+  'w3c_validator', 'curl', 'wget', 'python-requests', 'axios',
+];
+
 const DEFAULT_OG_IMAGE = 'https://kolhapur-maza.vercel.app/og-image.png';
 const SITE_URL = 'https://kolhapur-maza.vercel.app';
 
+function isBot(userAgent = '') {
+  const ua = userAgent.toLowerCase();
+  return BOT_AGENTS.some(bot => ua.includes(bot));
+}
+
 export default async function handler(req, res) {
   const { slug } = req.query;
+  const userAgent = req.headers['user-agent'] || '';
+
+  // Real users get the React SPA — proxy index.html from the CDN (no filesystem, no redirect loops)
+  if (!isBot(userAgent)) {
+    try {
+      const spaRes = await fetch(`${SITE_URL}/`, {
+        headers: { 'Accept': 'text/html' },
+      });
+      const html = await spaRes.text();
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(200).send(html);
+    } catch {
+      // fallback: let Vercel serve the SPA via a redirect to a non-API path
+      res.setHeader('Location', '/?_slug=' + encodeURIComponent(slug || ''));
+      return res.status(302).end();
+    }
+  }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
