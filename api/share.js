@@ -10,6 +10,7 @@ export default async function handler(req, res) {
   let title = 'KopMaza News';
   let description = 'कोल्हापूर माझा - शैक्षणिक, राजकीय, सामाजिक बातम्या';
   let image = DEFAULT_OG_IMAGE;
+  let imageType = 'image/png';
   const articleUrl = `${SITE_URL}/news/${slug}`;
 
   if (slug && supabaseUrl && supabaseKey) {
@@ -27,6 +28,11 @@ export default async function handler(req, res) {
         description = data[0].short_description || description;
         // Use the actual featured image; fall back to default only if missing
         image = data[0].featured_image || DEFAULT_OG_IMAGE;
+        // Detect MIME type from extension
+        if (image.match(/\.png(\?|$)/i)) imageType = 'image/png';
+        else if (image.match(/\.(jpg|jpeg)(\?|$)/i)) imageType = 'image/jpeg';
+        else if (image.match(/\.webp(\?|$)/i)) imageType = 'image/webp';
+        else if (image.match(/\.gif(\?|$)/i)) imageType = 'image/gif';
       }
     } catch (e) {
       console.error('Error fetching OG data:', e);
@@ -82,9 +88,7 @@ export default async function handler(req, res) {
     <meta property="og:url" content="${safeUrl}">
     <meta property="og:image" content="${safeImage}">
     <meta property="og:image:secure_url" content="${safeImage}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:type" content="${imageType}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDesc}">
