@@ -1,9 +1,15 @@
+import fs from 'fs';
+import path from 'path';
+
 const BOT_AGENTS = [
   'whatsapp', 'facebookexternalhit', 'facebot', 'twitterbot',
   'linkedinbot', 'telegrambot', 'discordbot', 'slackbot',
   'googlebot', 'bingbot', 'applebot', 'pinterest',
   'redditbot', 'vkshare', 'w3c_validator', 'curl', 'wget',
 ];
+
+const DEFAULT_OG_IMAGE = 'https://kolhapur-maza.vercel.app/og-image.png';
+const SITE_URL = 'https://kolhapur-maza.vercel.app';
 
 function isBot(userAgent = '') {
   const ua = userAgent.toLowerCase();
@@ -14,27 +20,27 @@ export default async function handler(req, res) {
   const { slug } = req.query;
   const userAgent = req.headers['user-agent'] || '';
 
-  // For real users (non-bots), serve a minimal HTML that loads the React SPA
+  // For real users (non-bots), serve the React SPA (index.html)
   if (!isBot(userAgent)) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.status(200).send(`<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <script>window.location.replace('/news/${encodeURIComponent(slug || '')}');</script>
-  </head>
-  <body></body>
-</html>`);
-    return;
+    try {
+      const indexPath = path.join(process.cwd(), 'dist', 'index.html');
+      const html = fs.readFileSync(indexPath, 'utf-8');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(200).send(html);
+    } catch {
+      // If dist/index.html not found, redirect to homepage (not the same slug URL to avoid loops)
+      res.setHeader('Location', '/');
+      return res.status(302).end();
+    }
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
   let title = 'KopMaza News';
-  let description = 'Latest News & Updates';
-  let image = '';
-  let articleUrl = `https://kolhapur-maza.vercel.app/news/${slug}`;
+  let description = 'कोल्हापूर माझा - शैक्षणिक, राजकीय, सामाजिक बातम्या';
+  let image = DEFAULT_OG_IMAGE;
+  let articleUrl = `${SITE_URL}/news/${slug}`;
 
   if (slug && supabaseUrl && supabaseKey) {
     try {
@@ -49,7 +55,7 @@ export default async function handler(req, res) {
       if (data && data.length > 0) {
         title = data[0].title || title;
         description = data[0].short_description || description;
-        image = data[0].featured_image || '';
+        image = data[0].featured_image || DEFAULT_OG_IMAGE;
       }
     } catch (e) {
       console.error('Error fetching OG data:', e);
@@ -82,13 +88,14 @@ export default async function handler(req, res) {
     <meta property="og:title" content="${safeTitle}">
     <meta property="og:description" content="${safeDesc}">
     <meta property="og:url" content="${safeUrl}">
-    ${safeImage ? `<meta property="og:image" content="${safeImage}">
+    <meta property="og:image" content="${safeImage}">
+    <meta property="og:image:secure_url" content="${safeImage}">
     <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">` : ''}
+    <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDesc}">
-    ${safeImage ? `<meta name="twitter:image" content="${safeImage}">` : ''}
+    <meta name="twitter:image" content="${safeImage}">
     <link rel="canonical" href="${safeUrl}">
   </head>
   <body>
