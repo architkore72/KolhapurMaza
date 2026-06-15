@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/share/:slug", "destination": "/api/share?slug=$1" },
+    { "source": "/news/:slug", "destination": "/api/news?slug=$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
