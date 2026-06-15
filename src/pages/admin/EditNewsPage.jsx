@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../components/admin/AdminLayout';
 import SEOHead from '../../components/ui/SEOHead';
@@ -19,9 +19,42 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { FontSize } from '../../components/admin/editor/FontSize';
 import { FontFamily } from '@tiptap/extension-font-family';
 import { Video as VideoExtension } from '../../components/admin/editor/Video';
+import { Youtube as YoutubeExtension } from '../../components/admin/editor/Youtube';
 import { Bold, Italic, List, ListOrdered, Heading2, Heading3, Link as LinkIcon, Image as ImageIcon, Video as VideoIcon, Quote, Undo, Redo, Type } from 'lucide-react';
 
+function YoutubeIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M21.8 8s-.2-1.4-.8-2c-.8-.8-1.6-.8-2-.9C16.8 5 12 5 12 5s-4.8 0-7 .1c-.4.1-1.2.1-2 .9-.6.6-.8 2-.8 2S2 9.6 2 11.2v1.6c0 1.6.2 3.2.2 3.2s.2 1.4.8 2c.8.8 1.8.8 2.2.8C6.4 19 12 19 12 19s4.8 0 7-.2c.4-.1 1.2-.1 2-.9.6-.6.8-2 .8-2s.2-1.6.2-3.2v-1.6C22 9.6 21.8 8 21.8 8zM10 14.5v-5l5.5 2.5-5.5 2.5z" />
+    </svg>
+  );
+}
+
+function extractYoutubeId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 function EditorToolbar({ editor }) {
+  const [, setForceUpdate] = useState(0);
+
+  useEffect(() => {
+    if (!editor) return;
+    const update = () => setForceUpdate(n => n + 1);
+    editor.on('selectionUpdate', update);
+    editor.on('transaction', update);
+    return () => {
+      editor.off('selectionUpdate', update);
+      editor.off('transaction', update);
+    };
+  }, [editor]);
+
   if (!editor) return null;
   const btn = (action, label, Icon, active) => (
     <button
@@ -42,14 +75,25 @@ function EditorToolbar({ editor }) {
           else editor.chain().focus().unsetFontFamily().run();
         }}
         value={editor.getAttributes('textStyle').fontFamily || ''}
-        className="px-1 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none max-w-[100px]"
+        className="px-1 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none max-w-[120px]"
       >
         <option value="">Font</option>
-        <option value="Inter">Inter</option>
-        <option value="Arial">Arial</option>
-        <option value="Georgia">Georgia</option>
-        <option value="Times New Roman">Times New Roman</option>
-        <option value="Courier New">Courier</option>
+        <optgroup label="मराठी / Devanagari">
+          <option value="Baloo 2" style={{ fontFamily: 'Baloo 2' }}>Baloo 2</option>
+          <option value="Noto Sans Devanagari" style={{ fontFamily: 'Noto Sans Devanagari' }}>Noto Devanagari</option>
+          <option value="Mukta" style={{ fontFamily: 'Mukta' }}>Mukta</option>
+          <option value="Tiro Devanagari" style={{ fontFamily: 'Tiro Devanagari' }}>Tiro Devanagari</option>
+          <option value="Khand" style={{ fontFamily: 'Khand' }}>Khand</option>
+          <option value="Hind" style={{ fontFamily: 'Hind' }}>Hind</option>
+          <option value="Rajdhani" style={{ fontFamily: 'Rajdhani' }}>Rajdhani</option>
+        </optgroup>
+        <optgroup label="General">
+          <option value="Inter">Inter</option>
+          <option value="Arial">Arial</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Courier New">Courier</option>
+        </optgroup>
       </select>
 
       <select
@@ -159,6 +203,25 @@ function EditorToolbar({ editor }) {
         />
       </label>
 
+      <button
+        type="button"
+        title="YouTube Video Link"
+        onClick={() => {
+          const url = window.prompt('Enter YouTube video URL');
+          if (url) {
+            const videoId = extractYoutubeId(url);
+            if (videoId) {
+              editor.chain().focus().setYoutube({ videoId }).run();
+            } else {
+              toast.error('Invalid YouTube URL');
+            }
+          }
+        }}
+        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+      >
+        <YoutubeIcon className="w-4 h-4" />
+      </button>
+
       <div className="w-px h-5 bg-gray-300 dark:bg-gray-500 mx-1" />
       {btn(() => editor.chain().focus().undo().run(), 'Undo', Undo)}
       {btn(() => editor.chain().focus().redo().run(), 'Redo', Redo)}
@@ -198,6 +261,7 @@ export default function EditNewsPage() {
       FontFamily,
       FontSize,
       VideoExtension,
+      YoutubeExtension,
     ],
   });
 

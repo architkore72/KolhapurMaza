@@ -52,3 +52,11 @@
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-thumb { background: #b91c1c; border-radius: 3px; }
 
+/* Allow inline color styles on bold text to override prose typography */
+.prose strong,
+.prose b,
+.ProseMirror strong,
+.ProseMirror b {
+  color: inherit;
+}
+

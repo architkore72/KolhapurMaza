@@ -73,7 +73,7 @@ export default async function handler(req, res) {
   // path/host chars stay untouched.
   const safeImage   = escapeAttr(image).replace(/&(?!amp;|lt;|gt;|quot;|#039;)/g, '&amp;');
   const safeUrl     = escapeAttr(articleUrl);
-  const safeSlug    = escapeAttr(slug || '');
+  const safeSlug    = encodeURIComponent(slug || '');
 
   const html = `<!DOCTYPE html>
 <html lang="mr">
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
     <link rel="canonical" href="${safeUrl}">
     <script>
       // Redirect real users to the React app
-      window.location.replace('/news/${safeSlug}');
+      window.location.replace('/news/${safeSlug}?_direct=1');
     </script>
   </head>
   <body>
