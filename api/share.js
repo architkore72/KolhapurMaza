@@ -1,76 +1,108 @@
+const DEFAULT_OG_IMAGE = 'https://kolhapur-maza.vercel.app/og-image.png';
+const SITE_URL = 'https://kolhapur-maza.vercel.app';
+
 export default async function handler(req, res) {
   const { slug } = req.query;
-  
+
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
   let title = 'KopMaza News';
-  let description = 'Latest News & Updates';
-  let image = '';
+  let description = 'कोल्हापूर माझा - शैक्षणिक, राजकीय, सामाजिक बातम्या';
+  let image = DEFAULT_OG_IMAGE;
+  const articleUrl = `${SITE_URL}/news/${slug}`;
 
   if (slug && supabaseUrl && supabaseKey) {
     try {
-      const response = await fetch(`${supabaseUrl}/rest/v1/news?slug=eq.${slug}&select=title,short_description,featured_image&limit=1`, {
+      const apiUrl = `${supabaseUrl}/rest/v1/news?slug=eq.${encodeURIComponent(slug)}&select=title,short_description,featured_image&limit=1`;
+      const response = await fetch(apiUrl, {
         headers: {
           'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        }
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
       });
       const data = await response.json();
       if (data && data.length > 0) {
-        title = data[0].title;
+        title = data[0].title || title;
         description = data[0].short_description || description;
-        image = data[0].featured_image;
+        // Use the actual featured image; fall back to default only if missing
+        image = data[0].featured_image || DEFAULT_OG_IMAGE;
       }
     } catch (e) {
       console.error('Error fetching OG data:', e);
     }
   }
 
-  // Escape HTML to prevent injection
-  const escapeHtml = (unsafe) => {
-    return (unsafe || '').replace(/[&<"']/g, function(m) {
+  // Escape HTML entities for safe insertion into HTML attributes/text.
+  // IMPORTANT: Only escape text/attribute values, NOT the image URL —
+  // image URLs can contain & in query strings which must stay as & in
+  // the HTTP URL itself (inside content="..." they should be &amp; but
+  // that only applies to the attribute value, and modern scrapers handle
+  // both). We use a targeted escaper that keeps URLs intact.
+  const escapeAttr = (str) =>
+    (str || '').replace(/[<>"']/g, (m) => {
       switch (m) {
-        case '&': return '&amp;';
-        case '<': return '&lt;';
-        case '"': return '&quot;';
-        default: return '&#039;';
+        case '<':  return '&lt;';
+        case '>':  return '&gt;';
+        case '"':  return '&quot;';
+        default:   return '&#039;';
       }
     });
-  };
 
-  const safeTitle = escapeHtml(title);
-  const safeDesc = escapeHtml(description);
-  const safeImage = escapeHtml(image);
-  const safeSlug = escapeHtml(slug);
+  const escapeText = (str) =>
+    (str || '').replace(/[&<>"']/g, (m) => {
+      switch (m) {
+        case '&':  return '&amp;';
+        case '<':  return '&lt;';
+        case '>':  return '&gt;';
+        case '"':  return '&quot;';
+        default:   return '&#039;';
+      }
+    });
 
-  const html = `
-    <!DOCTYPE html>
-    <html lang="mr">
-      <head>
-        <meta charset="utf-8">
-        <title>${safeTitle}</title>
-        <meta property="og:site_name" content="KopMaza News">
-        <meta property="og:type" content="article">
-        <meta property="og:title" content="${safeTitle}">
-        <meta property="og:description" content="${safeDesc}">
-        ${safeImage ? `<meta property="og:image" content="${safeImage}">` : ''}
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="${safeTitle}">
-        <meta name="twitter:description" content="${safeDesc}">
-        ${safeImage ? `<meta name="twitter:image" content="${safeImage}">` : ''}
-        
-        <script>
-          // Redirect actual users to the real React app route
-          window.location.replace('/news/${safeSlug}');
-        </script>
-      </head>
-      <body>
-        <p>Redirecting to article...</p>
-      </body>
-    </html>
-  `;
+  const safeTitle   = escapeText(title);
+  const safeDesc    = escapeText(description);
+  // For URLs used inside HTML attributes we must encode & as &amp; per HTML spec
+  // so that the browser / crawler parses the attribute correctly, while the URL
+  // path/host chars stay untouched.
+  const safeImage   = escapeAttr(image).replace(/&(?!amp;|lt;|gt;|quot;|#039;)/g, '&amp;');
+  const safeUrl     = escapeAttr(articleUrl);
+  const safeSlug    = escapeAttr(slug || '');
+
+  const html = `<!DOCTYPE html>
+<html lang="mr">
+  <head>
+    <meta charset="utf-8">
+    <title>${safeTitle}</title>
+    <meta name="description" content="${safeDesc}">
+    <meta property="og:site_name" content="KopMaza News">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="${safeTitle}">
+    <meta property="og:description" content="${safeDesc}">
+    <meta property="og:url" content="${safeUrl}">
+    <meta property="og:image" content="${safeImage}">
+    <meta property="og:image:secure_url" content="${safeImage}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${safeTitle}">
+    <meta name="twitter:description" content="${safeDesc}">
+    <meta name="twitter:image" content="${safeImage}">
+    <link rel="canonical" href="${safeUrl}">
+    <script>
+      // Redirect real users to the React app
+      window.location.replace('/news/${safeSlug}');
+    </script>
+  </head>
+  <body>
+    <h1>${safeTitle}</h1>
+    <p>${safeDesc}</p>
+    <img src="${safeImage}" alt="${safeTitle}">
+  </body>
+</html>`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60');
   res.status(200).send(html);
 }
