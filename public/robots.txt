@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://kolhapur-maza.vercel.app/sitemap.xml
