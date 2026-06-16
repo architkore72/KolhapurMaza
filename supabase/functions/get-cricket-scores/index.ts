@@ -1,16 +1,16 @@
 // supabase/functions/get-cricket-scores/index.ts
-// Proxies Cricbuzz RapidAPI and returns normalised match data.
-// Secrets required: RAPIDAPI_KEY (set in Supabase → Settings → Edge Functions → Secrets)
+// Proxies CricAPI (cricapi.com) and returns normalised match data.
+// Secrets required: RAPIDAPI_KEY = your CricAPI key (Supabase → Settings → Edge Functions → Secrets)
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
-// ── Rate limiting (sliding window, per-IP) ──────────────────────────────────
+// ── Rate limiting (sliding window, per-IP) ────────────────────────────────────
 const RATE_WINDOW_MS = 60_000;
-const RATE_MAX       = 15; // max requests per minute per IP
+const RATE_MAX       = 15;
 const rateLimitMap   = new Map<string, number[]>();
 
 function isRateLimited(ip: string): boolean {
-  const now = Date.now();
+  const now   = Date.now();
   const times = (rateLimitMap.get(ip) || []).filter(t => now - t < RATE_WINDOW_MS);
   if (times.length >= RATE_MAX) return true;
   times.push(now);
@@ -18,7 +18,7 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
-// ── Response cache (30 seconds) ──────────────────────────────────────────────
+// ── Response cache (30 seconds) ───────────────────────────────────────────────
 interface CacheEntry { data: unknown; ts: number }
 const responseCache = new Map<string, CacheEntry>();
 const CACHE_TTL_MS  = 30_000;
@@ -33,79 +33,75 @@ function setCache(key: string, data: unknown): void {
   responseCache.set(key, { data, ts: Date.now() });
 }
 
-// ── CORS headers ─────────────────────────────────────────────────────────────
+// ── CORS headers ──────────────────────────────────────────────────────────────
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info',
 };
 
-// ── Match normaliser ──────────────────────────────────────────────────────────
-
+// ── CricAPI normaliser ────────────────────────────────────────────────────────
 function normaliseMatch(m: Record<string, unknown>): unknown {
-  const matchInfo  = m.matchInfo  as Record<string, unknown> || {};
-  const matchScore = m.matchScore as Record<string, unknown> || {};
+  const teamInfo = (m.teamInfo as Record<string, unknown>[]) || [];
+  const scores   = (m.score   as Record<string, unknown>[]) || [];
 
-  const t1Info  = matchInfo.team1 as Record<string, unknown> || {};
-  const t2Info  = matchInfo.team2 as Record<string, unknown> || {};
+  const t1Info = teamInfo[0] as Record<string, unknown> | undefined;
+  const t2Info = teamInfo[1] as Record<string, unknown> | undefined;
 
-  const t1Score = (matchScore.team1Score as Record<string, unknown>) || {};
-  const t2Score = (matchScore.team2Score as Record<string, unknown>) || {};
-  const inn1_1  = (t1Score.inngs1 as Record<string, unknown>) || {};
-  const inn2_1  = (t2Score.inngs1 as Record<string, unknown>) || {};
+  const matchStarted = Boolean(m.matchStarted);
+  const matchEnded   = Boolean(m.matchEnded);
+  const status = matchEnded ? 'completed' : matchStarted ? 'live' : 'upcoming';
 
-  const state = String(matchInfo.state || '').toLowerCase();
-  const status =
-    state === 'in progress' || state === 'innings break' ? 'live'
-    : state === 'preview'   || state === 'toss'          ? 'upcoming'
-    : 'completed';
+  const t1Name = String(t1Info?.name || (m.teams as string[])?.[0] || 'Team 1');
+  const t2Name = String(t2Info?.name || (m.teams as string[])?.[1] || 'Team 2');
 
-  const imageBaseUrl = 'https://cricbuzz-cricket.p.rapidapi.com';
+  // Scores: each inning entry has { r, w, o, inning }
+  // First inning of team1, first inning of team2
+  const score1 = scores.find(s =>
+    String(s.inning || '').toLowerCase().includes(t1Name.toLowerCase().split(' ')[0])
+    && String(s.inning || '').toLowerCase().includes('inning 1')
+  ) || scores[0];
+
+  const score2 = scores.find(s =>
+    String(s.inning || '').toLowerCase().includes(t2Name.toLowerCase().split(' ')[0])
+    && String(s.inning || '').toLowerCase().includes('inning 1')
+  ) || scores[1];
 
   return {
-    id:          String(matchInfo.matchId || m.matchId || ''),
-    seriesName:  String(matchInfo.seriesName || ''),
-    matchType:   String(matchInfo.matchFormat || matchInfo.matchDesc || '').toUpperCase().split(' ')[0] || 'T20',
-    matchDesc:   String(matchInfo.matchDesc || ''),
-    venue:       String((matchInfo.venueInfo as Record<string, unknown>)?.ground || ''),
-    startTime:   matchInfo.startDate
-      ? new Date(Number(matchInfo.startDate)).toISOString()
-      : null,
+    id:         String(m.id || ''),
+    seriesName: String(m.name || ''),
+    matchType:  String(m.matchType || 'T20').toUpperCase(),
+    matchDesc:  String(m.name || ''),
+    venue:      String(m.venue || ''),
+    startTime:  m.dateTimeGMT ? new Date(String(m.dateTimeGMT)).toISOString() : null,
     status,
-    statusText:  String(matchInfo.status || ''),
-    isLive:      status === 'live',
-    tossText:    String(matchInfo.tossResults?.tossResultText || ''),
+    statusText: String(m.status || ''),
+    isLive:     status === 'live',
+    tossText:   '',
     team1: {
-      name:      String(t1Info.teamName || ''),
-      shortName: String(t1Info.teamSName || ''),
-      imageId:   t1Info.imageId ? String(t1Info.imageId) : null,
-      logoUrl:   t1Info.imageId
-        ? `${imageBaseUrl}/img/v1/i1/c${t1Info.imageId}/i.jpg`
-        : null,
+      name:      t1Name,
+      shortName: String(t1Info?.shortname || t1Name.substring(0, 4).toUpperCase()),
+      logoUrl:   t1Info?.img ? String(t1Info.img) : null,
     },
     team2: {
-      name:      String(t2Info.teamName || ''),
-      shortName: String(t2Info.teamSName || ''),
-      imageId:   t2Info.imageId ? String(t2Info.imageId) : null,
-      logoUrl:   t2Info.imageId
-        ? `${imageBaseUrl}/img/v1/i1/c${t2Info.imageId}/i.jpg`
-        : null,
+      name:      t2Name,
+      shortName: String(t2Info?.shortname || t2Name.substring(0, 4).toUpperCase()),
+      logoUrl:   t2Info?.img ? String(t2Info.img) : null,
     },
-    score1: Object.keys(inn1_1).length ? {
-      runs:    String(inn1_1.runs ?? ''),
-      wickets: inn1_1.wickets !== undefined ? String(inn1_1.wickets) : undefined,
-      overs:   inn1_1.overs ? String(inn1_1.overs) : undefined,
+    score1: score1 ? {
+      runs:    String(score1.r ?? ''),
+      wickets: score1.w !== undefined ? String(score1.w) : undefined,
+      overs:   score1.o !== undefined ? String(score1.o) : undefined,
     } : null,
-    score2: Object.keys(inn2_1).length ? {
-      runs:    String(inn2_1.runs ?? ''),
-      wickets: inn2_1.wickets !== undefined ? String(inn2_1.wickets) : undefined,
-      overs:   inn2_1.overs ? String(inn2_1.overs) : undefined,
+    score2: score2 ? {
+      runs:    String(score2.r ?? ''),
+      wickets: score2.w !== undefined ? String(score2.w) : undefined,
+      overs:   score2.o !== undefined ? String(score2.o) : undefined,
     } : null,
   };
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
-
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
@@ -131,47 +127,34 @@ serve(async (req: Request) => {
     });
   }
 
-  const RAPIDAPI_KEY = Deno.env.get('RAPIDAPI_KEY');
-  if (!RAPIDAPI_KEY) {
+  const API_KEY = Deno.env.get('RAPIDAPI_KEY');
+  if (!API_KEY) {
     return new Response(JSON.stringify({ error: 'RAPIDAPI_KEY secret not configured' }), {
       status: 500,
       headers: { ...CORS, 'Content-Type': 'application/json' },
     });
   }
 
-  // Map our type to Cricbuzz endpoint
-  const endpointMap: Record<string, string> = {
-    live:     'matches/v1/live',
-    upcoming: 'matches/v1/upcoming',
-    recent:   'matches/v1/recent',
-  };
-  const endpoint = endpointMap[type];
+  // CricAPI v1 — currentMatches for live/upcoming, matches for recent
+  const url = type === 'recent'
+    ? `https://api.cricapi.com/v1/matches?apikey=${API_KEY}&offset=0`
+    : `https://api.cricapi.com/v1/currentMatches?apikey=${API_KEY}&offset=0`;
 
   try {
-    const res = await fetch(`https://cricbuzz-cricket.p.rapidapi.com/${endpoint}`, {
-      headers: {
-        'X-RapidAPI-Key':  RAPIDAPI_KEY,
-        'X-RapidAPI-Host': 'cricbuzz-cricket.p.rapidapi.com',
-      },
-    });
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`CricAPI returned HTTP ${res.status}`);
 
-    if (!res.ok) {
-      throw new Error(`Cricbuzz API returned ${res.status}`);
-    }
+    const json = await res.json() as { data?: unknown[]; status?: string };
+    if (json.status !== 'success') throw new Error(`CricAPI error: status=${json.status}`);
 
-    const json = await res.json() as { typeMatches?: unknown[] };
+    const rawMatches = (json.data || []) as Record<string, unknown>[];
 
-    // Flatten all matches from all type-match groups
-    const rawMatches: Record<string, unknown>[] = [];
-    for (const typeGroup of json.typeMatches || []) {
-      const tg = typeGroup as Record<string, unknown>;
-      for (const seriesGroup of (tg.seriesMatches || []) as Record<string, unknown>[]) {
-        const matches = (seriesGroup.seriesAdWrapper as Record<string, unknown>)?.matches;
-        if (Array.isArray(matches)) rawMatches.push(...matches);
-      }
-    }
+    let filtered = rawMatches;
+    if (type === 'live')     filtered = rawMatches.filter(m => m.matchStarted && !m.matchEnded);
+    if (type === 'upcoming') filtered = rawMatches.filter(m => !m.matchStarted);
+    if (type === 'recent')   filtered = rawMatches.filter(m => m.matchEnded);
 
-    const matches = rawMatches.map(normaliseMatch);
+    const matches = filtered.map(normaliseMatch);
     const payload = { matches, fetchedAt: new Date().toISOString(), type };
 
     setCache(cacheKey, payload);

@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import { formatShortDate } from '../../utils/dateFormat';
 
-// Lazy-load image with blur placeholder
+// Lazy-load image — uses object-contain so portrait images never crop
 function NewsImage({ src, alt, className = '' }) {
   return (
     <img
       src={src || '/placeholder-news.jpg'}
       alt={alt}
-      className={`object-cover w-full h-full transition-transform duration-300 group-hover:scale-105 ${className}`}
+      className={`object-contain w-full h-full bg-gray-100 dark:bg-gray-800 transition-transform duration-300 group-hover:scale-105 ${className}`}
       loading="lazy"
       onError={(e) => { e.target.src = '/placeholder-news.jpg'; }}
     />

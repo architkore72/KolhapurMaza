@@ -43,7 +43,7 @@
   100% { transform: translateX(-100%); }
 }
 .ticker-animate {
-  animation: ticker 35s linear infinite;
+  animation: ticker 60s linear infinite;
   white-space: nowrap;
   display: inline-block;
 }

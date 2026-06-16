@@ -78,11 +78,13 @@ export default function NewsDetailPage() {
       <article className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
         {/* Featured Image */}
         {news.featured_image && (
-          <img
-            src={news.featured_image}
-            alt={news.title}
-            className="w-full h-64 sm:h-96 object-cover"
-          />
+          <div className="w-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+            <img
+              src={news.featured_image}
+              alt={news.title}
+              className="max-w-full max-h-[520px] w-auto object-contain"
+            />
+          </div>
         )}
 
         <div className="p-5 sm:p-8">

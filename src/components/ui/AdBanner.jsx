@@ -18,7 +18,7 @@ export default function AdBanner({ position = 'sidebar' }) {
     if (ads.length < 2) return;
     const timer = setInterval(() => {
       setCurrent(i => (i + 1) % ads.length);
-    }, 4000);
+    }, 2000);
     return () => clearInterval(timer);
   }, [ads.length]);
 

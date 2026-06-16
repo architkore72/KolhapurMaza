@@ -4,6 +4,7 @@ import { useCategories } from '../../hooks/useCategories';
 import { ListCard, SkeletonListCard } from '../ui/NewsCard';
 import SocialMediaWidget from '../ui/SocialMediaWidget';
 import AdBanner from '../ui/AdBanner';
+import LiveScoresWidget from '../ui/LiveScoresWidget';
 
 function SidebarSection({ title, children }) {
   return (
@@ -23,6 +24,9 @@ export default function Sidebar() {
     <aside className="space-y-5">
       {/* Ad banner */}
       <AdBanner position="sidebar" />
+
+      {/* Live Cricket Scores Widget */}
+      <LiveScoresWidget />
 
       {/* Social Media */}
       <SocialMediaWidget />
