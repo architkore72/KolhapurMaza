@@ -1,5 +1,6 @@
 {
   "routes": [
+    { "src": "/sitemap.xml", "dest": "/api/sitemap" },
     { "src": "/share/(.*)", "dest": "/api/share?slug=$1" },
     { "src": "/news/(.*)", "dest": "/api/news?slug=$1" },
     { "handle": "filesystem" },
