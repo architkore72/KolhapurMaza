@@ -125,6 +125,11 @@ export default function Header() {
                 Contact
               </Link>
             </li>
+            <li>
+              <Link to="/sports" className="flex items-center gap-1.5 px-4 py-3 text-white text-sm font-bold hover:bg-red-800 transition-colors whitespace-nowrap">
+                🏏 Live Scores
+              </Link>
+            </li>
           </ul>
 
           {/* Mobile nav */}
@@ -157,6 +162,15 @@ export default function Header() {
                   className="block px-4 py-2.5 text-white text-sm font-medium hover:bg-red-800 transition-colors"
                 >
                   Contact
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/sports"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-4 py-2.5 text-white text-sm font-bold hover:bg-red-800 transition-colors"
+                >
+                  🏏 Live Scores
                 </Link>
               </li>
             </ul>

@@ -13,6 +13,9 @@ import NewsDetailPage from './pages/NewsDetailPage';
 import CategoryPage from './pages/CategoryPage';
 import SearchPage from './pages/SearchPage';
 import ContactPage from './pages/ContactPage';
+import { lazy, Suspense } from 'react';
+
+const SportsCenter = lazy(() => import('./pages/SportsCenter'));
 
 // Admin pages
 import AdminLoginPage from './pages/admin/AdminLoginPage';
@@ -49,6 +52,11 @@ export default function App() {
                 <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/sports" element={
+                  <Suspense fallback={<div className="min-h-screen bg-gray-950" />}>
+                    <SportsCenter />
+                  </Suspense>
+                } />
 
                 {/* Admin */}
                 <Route path="/admin" element={<AdminLoginPage />} />
