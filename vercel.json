@@ -1,8 +1,9 @@
 {
-  "rewrites": [
-    { "source": "/share/:slug", "destination": "/api/share?slug=$1" },
-    { "source": "/news/:slug", "destination": "/api/news?slug=$1" },
-    { "source": "/((?!api/|sitemap\\.xml|robots\\.txt|favicon\\.svg|icons\\.svg|og-image\\.png|assets/).*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/share/(.*)", "dest": "/api/share?slug=$1" },
+    { "src": "/news/(.*)", "dest": "/api/news?slug=$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
   
