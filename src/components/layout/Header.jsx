@@ -30,7 +30,7 @@ export default function Header() {
   const today = format(new Date(), 'EEEE, MMMM d, yyyy');
 
   return (
-    <div className="sticky top-0 z-50 shadow-md">
+    <>
       {/* Top bar */}
       <div className="bg-gray-900 text-gray-300 text-xs">
         <div className="container mx-auto px-4 flex items-center justify-between h-8">
@@ -52,8 +52,10 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Breaking news ticker */}
-      <BreakingTicker />
+      {/* Breaking news ticker — sticky only */}
+      <div className="sticky top-0 z-50">
+        <BreakingTicker />
+      </div>
 
       {/* Main header */}
       <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
@@ -179,6 +181,6 @@ export default function Header() {
       </nav>
 
       {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
-    </div>
+    </>
   );
 }
