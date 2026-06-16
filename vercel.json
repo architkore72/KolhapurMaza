@@ -2,7 +2,7 @@
   "rewrites": [
     { "source": "/share/:slug", "destination": "/api/share?slug=$1" },
     { "source": "/news/:slug", "destination": "/api/news?slug=$1" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|sitemap\\.xml|robots\\.txt|favicon\\.svg|icons\\.svg|og-image\\.png|assets/).*)", "destination": "/index.html" }
   ]
 }
   
