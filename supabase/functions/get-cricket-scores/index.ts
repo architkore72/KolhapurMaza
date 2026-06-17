@@ -114,9 +114,11 @@ Deno.serve(async (req: Request) => {
   }
 
   let type = 'live';
+  let clientApiKey = '';
   try {
     const body = await req.json();
     if (['live', 'upcoming', 'recent'].includes(body?.type)) type = body.type;
+    if (body?.apikey) clientApiKey = body.apikey;
   } catch { /* use default */ }
 
   const cacheKey = `cricket:${type}`;
@@ -127,9 +129,9 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const API_KEY = Deno.env.get('RAPIDAPI_KEY');
+  const API_KEY = clientApiKey || Deno.env.get('CRICAPI_KEY') || Deno.env.get('RAPIDAPI_KEY');
   if (!API_KEY) {
-    return new Response(JSON.stringify({ error: 'RAPIDAPI_KEY secret not configured' }), {
+    return new Response(JSON.stringify({ error: 'API key not provided and secret not configured' }), {
       status: 500,
       headers: { ...CORS, 'Content-Type': 'application/json' },
     });
@@ -144,8 +146,8 @@ Deno.serve(async (req: Request) => {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`CricAPI returned HTTP ${res.status}`);
 
-    const json = await res.json() as { data?: unknown[]; status?: string };
-    if (json.status !== 'success') throw new Error(`CricAPI error: status=${json.status}`);
+    const json = await res.json() as { data?: unknown[]; status?: string; reason?: string };
+    if (json.status !== 'success') throw new Error(`CricAPI error: status=${json.status}, reason=${json.reason || 'unknown'}`);
 
     const rawMatches = (json.data || []) as Record<string, unknown>[];
 

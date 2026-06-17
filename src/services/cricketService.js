@@ -16,7 +16,10 @@ import { supabase } from '../lib/supabase';
  */
 export async function fetchCricketScores(type = 'live') {
   const { data, error } = await supabase.functions.invoke('get-cricket-scores', {
-    body: { type },
+    body: { 
+      type,
+      apikey: import.meta.env.VITE_CRICAPI_KEY 
+    },
   });
 
   if (error) {

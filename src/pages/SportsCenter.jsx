@@ -487,13 +487,15 @@ export default function SportsCenter() {
         <meta name="description" content="Live cricket and football scores, fixtures, results and league standings on KopMaza Sports Center." />
       </Helmet>
 
-      {/* ── Page hero ── */}
-      <div
-        className="relative -mx-4 px-4 pt-8 pb-6 mb-6 overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, #0f0f1e 0%, #1a0a2e 50%, #0d1a2e 100%)',
-        }}
-      >
+      {/* ── Immersive Dark Background Wrapper ── */}
+      <div className="-mx-4 -my-6 min-h-screen pb-12" style={{ background: '#0b0b13' }}>
+        {/* ── Page hero ── */}
+        <div
+          className="relative px-4 sm:px-8 pt-10 pb-8 mb-6 overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #0f0f1e 0%, #1a0a2e 50%, #0d1a2e 100%)',
+          }}
+        >
         {/* Decorative blobs */}
         <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full opacity-20 blur-3xl"
           style={{ background: 'radial-gradient(circle, #dc2626, transparent)' }} />
@@ -516,7 +518,7 @@ export default function SportsCenter() {
       </div>
 
       {/* ── Main content area ── */}
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8">
 
         {/* Sport tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
@@ -566,6 +568,7 @@ export default function SportsCenter() {
           )}
         </div>
       </div>
+    </div>
 
       {/* Match detail modal */}
       <Suspense fallback={null}>
