@@ -2,7 +2,7 @@
 // Proxies CricAPI (cricapi.com) and returns normalised match data.
 // Secrets required: RAPIDAPI_KEY = your CricAPI key (Supabase → Settings → Edge Functions → Secrets)
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+export {};
 
 // ── Rate limiting (sliding window, per-IP) ────────────────────────────────────
 const RATE_WINDOW_MS = 60_000;
@@ -102,7 +102,7 @@ function normaliseMatch(m: Record<string, unknown>): unknown {
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
   const ip = req.headers.get('x-forwarded-for') || 'unknown';

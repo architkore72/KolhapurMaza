@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "lib": ["esnext", "dom"],
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "files": [
+    "deno.d.ts",
+    "get-cricket-scores/index.ts",
+    "get-football-scores/index.ts",
+    "get-football-standings/index.ts"
+  ]
+}

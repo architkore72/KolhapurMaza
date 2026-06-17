@@ -2,7 +2,7 @@
 // Returns league standings from API-Football.
 // Secrets required: API_FOOTBALL_KEY
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+export {};
 
 // ── Cache (5 minutes for standings) ──────────────────────────────────────────
 interface CacheEntry { data: unknown; ts: number }
@@ -68,7 +68,7 @@ function normaliseStanding(row: Record<string, unknown>): unknown {
   };
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
   const ip = req.headers.get('x-forwarded-for') || 'unknown';

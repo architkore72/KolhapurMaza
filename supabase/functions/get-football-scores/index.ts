@@ -2,7 +2,7 @@
 // Proxies API-Football and returns normalised match data.
 // Secrets required: API_FOOTBALL_KEY (set in Supabase → Settings → Edge Functions → Secrets)
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+export {};
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
 const RATE_WINDOW_MS = 60_000;
@@ -101,7 +101,7 @@ function normaliseMatch(f: Record<string, unknown>): unknown {
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
   const ip = req.headers.get('x-forwarded-for') || 'unknown';
