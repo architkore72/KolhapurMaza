@@ -28,6 +28,13 @@ export default async function handler(req, res) {
         description = data[0].short_description || description;
         // Use the actual featured image; fall back to default only if missing
         image = data[0].featured_image || DEFAULT_OG_IMAGE;
+        
+        // Optimise Supabase images for WhatsApp Mobile compatibility (must be < 300KB)
+        if (image.includes('/storage/v1/object/public/')) {
+          image = image.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
+          image += image.includes('?') ? '&' : '?';
+          image += 'width=800&resize=contain&quality=70';
+        }
         // Detect MIME type from extension
         if (image.match(/\.png(\?|$)/i)) imageType = 'image/png';
         else if (image.match(/\.(jpg|jpeg)(\?|$)/i)) imageType = 'image/jpeg';
