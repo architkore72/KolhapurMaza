@@ -8,6 +8,7 @@ import { useAuthors } from '../../hooks/useAuthors';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { slugify } from '../../utils/slugify';
+import { compressImage } from '../../utils/imageUtils';
 import toast from 'react-hot-toast';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -160,15 +161,15 @@ function EditorToolbar({ editor }) {
           onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
-            const ext = file.name.split('.').pop();
-            const path = `news/${Date.now()}.${ext}`;
-            const toastId = toast.loading('Uploading image...');
+            const toastId = toast.loading('Compressing & uploading image...');
             try {
-              const { error } = await supabase.storage.from('news-images').upload(path, file);
+              const compressed = await compressImage(file);
+              const path = `news/${Date.now()}.jpg`;
+              const { error } = await supabase.storage.from('news-images').upload(path, compressed, { contentType: 'image/jpeg' });
               if (error) throw error;
               const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
               editor.chain().focus().setImage({ src: publicUrl }).run();
-              toast.success('Image uploaded', { id: toastId });
+              toast.success(`Image uploaded (${Math.round(compressed.size / 1024)} KB)`, { id: toastId });
             } catch (err) {
               toast.error('Upload failed', { id: toastId });
             }
@@ -318,28 +319,32 @@ export default function EditNewsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type and size
+    // Validate file type
     const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowed.includes(file.type)) {
       toast.error('Only JPEG, PNG, and WebP images are allowed');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error('Image must be under 15MB');
       return;
     }
 
     setImageUploading(true);
+    const toastId = toast.loading('Compressing image…');
     try {
-      const ext = file.name.split('.').pop();
-      const path = `news/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('news-images').upload(path, file);
+      // Compress to ≤250 KB JPEG — ensures WhatsApp/FB OG previews always work
+      const compressed = await compressImage(file, { maxWidth: 1200, maxHeight: 1200, quality: 0.82, maxSizeKB: 250 });
+      toast.loading(`Uploading (${Math.round(compressed.size / 1024)} KB)…`, { id: toastId });
+
+      const path = `news/${Date.now()}.jpg`;
+      const { error } = await supabase.storage.from('news-images').upload(path, compressed, { contentType: 'image/jpeg' });
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
       setForm(f => ({ ...f, featured_image: publicUrl }));
-      toast.success('Image uploaded');
+      toast.success(`Image uploaded (${Math.round(compressed.size / 1024)} KB)`, { id: toastId });
     } catch {
-      toast.error('Image upload failed');
+      toast.error('Image upload failed', { id: toastId });
     } finally {
       setImageUploading(false);
     }

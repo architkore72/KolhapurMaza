@@ -3,6 +3,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import SEOHead from '../../components/ui/SEOHead';
 import { useAllAds, useCreateAd, useUpdateAd, useDeleteAd } from '../../hooks/useAdvertisements';
 import { supabase } from '../../lib/supabase';
+import { compressImage } from '../../utils/imageUtils';
 import { Plus, Pencil, Trash2, X, Check, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -32,25 +33,26 @@ export default function ManageAdsPage() {
       toast.error('Only JPEG, PNG, WebP or GIF images are allowed');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error('Image must be under 15MB');
       return;
     }
 
     setUploading(true);
+    const toastId = toast.loading('Compressing image…');
     try {
-      const ext = file.name.split('.').pop();
-      const path = `ads/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('news-images').upload(path, file);
+      const compressed = await compressImage(file, { maxWidth: 1200, maxHeight: 800, quality: 0.82, maxSizeKB: 250 });
+      toast.loading(`Uploading (${Math.round(compressed.size / 1024)} KB)…`, { id: toastId });
+      const path = `ads/${Date.now()}.jpg`;
+      const { error } = await supabase.storage.from('news-images').upload(path, compressed, { contentType: 'image/jpeg' });
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
       setForm(f => ({ ...f, image: publicUrl }));
-      toast.success('Image uploaded');
+      toast.success(`Image uploaded (${Math.round(compressed.size / 1024)} KB)`, { id: toastId });
     } catch (err) {
-      toast.error('Upload failed: ' + (err.message || 'Unknown error'));
+      toast.error('Upload failed: ' + (err.message || 'Unknown error'), { id: toastId });
     } finally {
       setUploading(false);
-      // Reset file input
       e.target.value = '';
     }
   }
