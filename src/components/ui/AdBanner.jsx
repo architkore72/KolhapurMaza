@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAdvertisements } from '../../hooks/useAdvertisements';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import BreakingTicker from './BreakingTicker';
 
 // Height classes per position
 const HEIGHT = {
@@ -31,6 +32,7 @@ export default function AdBanner({ position = 'sidebar' }) {
   const height = HEIGHT[position] || 'h-28';
 
   return (
+    <>
     <div className={`relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 ${height} bg-gray-100 dark:bg-gray-800`}>
       {/* Ad image */}
       <a
@@ -86,6 +88,12 @@ export default function AdBanner({ position = 'sidebar' }) {
         Ad
       </span>
     </div>
+    {position === 'header' && (
+      <div className="my-3">
+        <BreakingTicker />
+      </div>
+    )}
+    </>
   );
 }
 

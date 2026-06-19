@@ -4,13 +4,16 @@ import Sidebar from './Sidebar';
 
 export default function Layout({ children, sidebar = true }) {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-950">
+    <div className="min-h-screen flex flex-col">
       <Header />
+
       <main className="flex-1 container mx-auto px-4 py-6">
         {sidebar ? (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
-            <div>{children}</div>
-            <Sidebar />
+          <div className="flex gap-6">
+            <div className="flex-1 min-w-0">{children}</div>
+            <aside className="hidden lg:block w-80 shrink-0">
+              <Sidebar />
+            </aside>
           </div>
         ) : (
           children

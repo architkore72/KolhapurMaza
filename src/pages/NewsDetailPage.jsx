@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout';
 import SEOHead from '../components/ui/SEOHead';
 import { NewsCard, SkeletonCard } from '../components/ui/NewsCard';
 import AdBanner from '../components/ui/AdBanner';
+import LiveScoresWidget from '../components/ui/LiveScoresWidget';
 import { useNewsDetail, useRelatedNews } from '../hooks/useNews';
 import { formatDate } from '../utils/dateFormat';
 import toast from 'react-hot-toast';
@@ -181,6 +182,11 @@ export default function NewsDetailPage() {
           </div>
         </section>
       )}
+
+      {/* Live Scores — mobile only (desktop sees it in sidebar) */}
+      <div className="mt-6 lg:hidden">
+        <LiveScoresWidget />
+      </div>
 
       {/* Ad Banner — between related news and comments */}
       <div className="mt-6">

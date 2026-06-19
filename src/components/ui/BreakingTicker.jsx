@@ -8,11 +8,11 @@ export default function BreakingTicker() {
   const text = items.map(n => n.title).join('   •   ');
 
   return (
-    <div className="bg-red-700 text-white flex items-center overflow-hidden h-8">
+    <div className="bg-red-700 text-white flex items-center overflow-hidden h-8 max-w-full">
       <span className="bg-red-900 px-3 h-full flex items-center text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0">
         Breaking
       </span>
-      <div className="relative flex-1 overflow-hidden h-full flex items-center">
+      <div className="relative flex-1 min-w-0 overflow-hidden h-full flex items-center">
         <span className="ticker-animate text-sm px-4">
           {text}
         </span>
