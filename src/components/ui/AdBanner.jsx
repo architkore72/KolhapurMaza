@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAdvertisements } from '../../hooks/useAdvertisements';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import BreakingTicker from './BreakingTicker';
+
 
 // Height classes per position
 const HEIGHT = {
@@ -88,11 +88,6 @@ export default function AdBanner({ position = 'sidebar' }) {
         Ad
       </span>
     </div>
-    {position === 'header' && (
-      <div className="my-3">
-        <BreakingTicker />
-      </div>
-    )}
     </>
   );
 }

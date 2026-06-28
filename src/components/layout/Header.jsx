@@ -52,10 +52,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Breaking news ticker — sticky only */}
-      <div className="sticky top-0 z-50">
-        <BreakingTicker />
-      </div>
+
 
       {/* Main header */}
       <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
@@ -102,7 +99,9 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Navigation */}
+      {/* Navigation + Breaking Ticker — sticky together */}
+      <div className="sticky top-0 z-50">
+        <BreakingTicker />
       <nav className="bg-red-700">
         <div className="container mx-auto px-4">
           {/* Desktop nav */}
@@ -179,6 +178,7 @@ export default function Header() {
           )}
         </div>
       </nav>
+      </div>
 
       {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
     </>

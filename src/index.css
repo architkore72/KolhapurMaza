@@ -38,16 +38,35 @@
   }
 }
 
-@keyframes ticker {
-  0%   { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
-.ticker-animate {
-  animation: ticker 60s linear infinite;
+.ticker-track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  animation: ticker-scroll 30s linear infinite;
+  will-change: transform;
+}
+.ticker-track:hover { animation-play-state: paused; }
+.ticker-item {
   white-space: nowrap;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: white;
+  text-decoration: none;
+  padding: 0 0.5rem;
+  gap: 0;
 }
-.ticker-animate:hover { animation-play-state: paused; }
+.ticker-item:hover { text-decoration: underline; }
+.ticker-dot {
+  margin: 0 0.75rem;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.5rem;
+}
+
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-thumb { background: #b91c1c; border-radius: 3px; }

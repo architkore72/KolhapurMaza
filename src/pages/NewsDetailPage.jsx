@@ -7,6 +7,7 @@ import { NewsCard, SkeletonCard } from '../components/ui/NewsCard';
 import AdBanner from '../components/ui/AdBanner';
 import LiveScoresWidget from '../components/ui/LiveScoresWidget';
 import { useNewsDetail, useRelatedNews } from '../hooks/useNews';
+import { useCategories } from '../hooks/useCategories';
 import { formatDate } from '../utils/dateFormat';
 import toast from 'react-hot-toast';
 import CommentSection from '../components/ui/CommentSection';
@@ -29,6 +30,7 @@ export default function NewsDetailPage() {
   const { slug } = useParams();
   const { data: news, isLoading, error } = useNewsDetail(slug);
   const { data: related = [] } = useRelatedNews(news?.categories?.id, news?.id);
+  const { data: categories = [] } = useCategories();
 
   const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
 
@@ -71,11 +73,6 @@ export default function NewsDetailPage() {
         url={pageUrl}
         type="article"
       />
-          {/* Ad Banner — below article */}
-      <div className="mb-6">
-        <AdBanner position="header" />
-      </div>
-
       <article className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
         {/* Featured Image */}
         {news.featured_image && (
@@ -122,9 +119,14 @@ export default function NewsDetailPage() {
             </span>
           </div>
 
+          {/* Ad Banner — after author/date/views */}
+          <div className="mb-5">
+            <AdBanner position="header" />
+          </div>
+
           {/* Short description */}
           {news.short_description && (
-            <p 
+            <p
               className="text-lg text-gray-600 dark:text-gray-300 font-medium mb-5 italic"
               style={news.short_description_color ? { color: news.short_description_color } : undefined}
             >
@@ -171,8 +173,6 @@ export default function NewsDetailPage() {
         </div>
       </article>
 
-    
-
       {/* Related News */}
       {related.length > 0 && (
         <section className="mt-8">
@@ -195,6 +195,28 @@ export default function NewsDetailPage() {
 
       {/* Comments */}
       <CommentSection newsId={news.id} />
+
+      {/* Categories — mobile only (desktop sees it in sidebar) */}
+      {categories.length > 0 && (
+        <div className="mt-6 lg:hidden bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">
+          <h3 className="section-title text-base">Categories</h3>
+          <ul className="space-y-1">
+            {categories.map(cat => (
+              <li key={cat.id}>
+                <Link
+                  to={`/category/${cat.slug}`}
+                  className="flex items-center justify-between py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-red-700 dark:hover:text-red-400 transition-colors group"
+                >
+                  <span>&rsaquo;&nbsp;{cat.name}</span>
+                  <span className="text-xs font-semibold bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-500 dark:text-gray-400 group-hover:bg-red-100 group-hover:text-red-700 dark:group-hover:bg-red-900 dark:group-hover:text-red-300 transition-colors">
+                    {cat.news?.[0]?.count || 0}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </Layout>
   );
 }

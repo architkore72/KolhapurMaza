@@ -30,19 +30,17 @@ export default function Footer() {
           {/* Categories */}
           <div>
             <h4 className="text-white font-bold mb-3 text-sm uppercase tracking-wider border-b border-gray-700 pb-2">Categories</h4>
-            <ul className="space-y-1.5">
-              {categories.slice(0, 8).map(cat => (
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+              {categories.map(cat => (
                 <li key={cat.id}>
-                  <Link to={`/category/${cat.slug}`} className="group flex items-center justify-between text-sm text-gray-400 hover:text-red-400 transition-colors">
+                  <Link to={`/category/${cat.slug}`} className="group flex items-center gap-1 text-sm text-gray-400 hover:text-red-400 transition-colors">
                     <span>› {cat.name}</span>
-                    <span className="text-xs bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded group-hover:bg-red-900 group-hover:text-red-300 transition-colors">
-                      {cat.news?.[0]?.count || 0}
-                    </span>
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
+
 
           {/* Quick Links */}
           <div>
